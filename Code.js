@@ -3,7 +3,10 @@
  * @description Main server-side logic for the web app.
  * Handles serving the HTML interface and exposing data-fetching functions to the client.
  */
-
+// הוספתי הערה חדשה
+function myFunction() {
+    // הקוד הקיים...
+}
 const AUTHORIZED_DOMAIN = 'stage-design.co.il';
 
 /**
