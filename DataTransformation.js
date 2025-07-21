@@ -110,10 +110,7 @@ function enrichEventsWithSupportingData(tasks, supportingData) {
         enrichedEvent.taskStatusHebrew = (taskStatusData.hebrew || taskStatusData.TaskStatus || '').trim().toLowerCase();
 
         // --- ADDING COLOR PROPERTIES ---
-        // UPDATED: Set a default subtle background color for all events.
-        enrichedEvent.backgroundColor = '#f0f2f5'; // A subtle, light grey-blue
-
-        // Restore conditional text color based on task type. Default to black for readability on the new light background.
+        enrichedEvent.backgroundColor = '#f0f2f5';
         enrichedEvent.textColor = mapColorNameToHex(taskTypeData.color, '#000000');
 
         return enrichedEvent;
@@ -121,7 +118,6 @@ function enrichEventsWithSupportingData(tasks, supportingData) {
 
     // --- FILTERING LOGIC ---
     const filtered = enriched.filter(event => {
-        // The properties are now already in lowercase, so no need for conversion here.
         const projectStatus = event.projectStatus;
         const taskStatus = event.taskStatusHebrew;
 
@@ -147,9 +143,9 @@ function transformEventsForCalendar(enrichedEvents) {
     return enrichedEvents.map(event => {
         const start = formatDateTimeForCalendar(event.dateIn, event.timeIn);
 
-        // **FIXED**: To avoid multi-day issues, the end date is ignored.
-        // The end time is set to be the same as the start time, making every event a point-in-time event.
-        const end = start;
+        // **FIXED (New approach)**: To display events only on their start date,
+        // we will not provide an end date to FullCalendar. This prevents multi-day rendering.
+        const end = undefined;
 
         if (!start) return null;
 
@@ -159,11 +155,10 @@ function transformEventsForCalendar(enrichedEvents) {
             id: event.ID,
             title: buildEventTitle(event),
             start: start,
-            end: end, // End is now the same as start
+            end: end, // By not setting an end date, it will only appear on the start date.
             allDay: isCalendarEvent || !event.timeIn,
             backgroundColor: event.backgroundColor,
             textColor: event.textColor,
-            // Set border color to match the background for a solid look.
             borderColor: event.backgroundColor,
             classNames: isCalendarEvent ? ['calendar-event'] : [],
             extendedProps: {
