@@ -82,12 +82,14 @@
     /* --- Calendar Styles for Full Screen --- */
     #calendar-container {
         position: relative; /* Needed for watermark positioning */
-        flex-grow: 1;
+        /* REMOVED: flex-grow to work better with sticky toolbar */
         opacity: 0;
         transition: opacity 0.5s;
         padding: 20px;
         display: flex;
         flex-direction: column;
+        /* NEW: Ensure proper scrolling context */
+        overflow: visible;
     }
 
     #calendar {
@@ -96,7 +98,8 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         padding: 15px;
-        border-top: 1px solid #e9ecef;
+        /* UPDATED: Remove border-top as toolbar now has shadow */
+        margin-top: 10px; /* Add small gap between sticky toolbar and calendar */
     }
 
     /* --- UPDATED: Custom Toolbar Styles with 5-Zone Grid --- */
@@ -109,7 +112,17 @@
         background-color: #ffffff;
         border-radius: 8px 8px 0 0;
         gap: 20px; /* Increased gap for better spacing */
+        /* NEW: Sticky toolbar - stays at top when scrolling */
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
+        /* NEW: Enhanced shadow when toolbar is stuck */
+        #custom-toolbar:not(:first-child) {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
 
     .toolbar-section {
         display: flex;
