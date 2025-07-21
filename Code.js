@@ -4,7 +4,7 @@
  * Handles serving the HTML interface and exposing data-fetching functions to the client.
  * @version 2.0 - Optimized for performance
  */
-const AUTHORIZED_DOMAIN = 'stage-design.co.il';
+const AUTHORIZED_DOMAINS = ['stage-design.co.il', 'stagedesign.co.il'];
 
 /**
  * Checks if the current user is authorized to access the application based on their email domain.
@@ -12,11 +12,14 @@ const AUTHORIZED_DOMAIN = 'stage-design.co.il';
  */
 function isCurrentUserAuthorized() {
     try {
-        const email = Session.getActiveUser().getEmail();
-        if (email && email.toLowerCase().endsWith('@' + AUTHORIZED_DOMAIN)) {
-            return true;
+        const email = Session.getActiveUser().getEmail().toLowerCase();
+        if (!email) {
+            return false;
         }
-        return false;
+
+        // Check if the email's domain is in the authorized list
+        return AUTHORIZED_DOMAINS.some(domain => email.endsWith('@' + domain));
+
     } catch (e) {
         // If user is not logged in or there's an error, they are not authorized.
         console.error("Authorization check failed: " + e.toString());
