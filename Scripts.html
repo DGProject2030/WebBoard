@@ -262,21 +262,20 @@
     }
 
     function countEventDaysInRange(event, rangeStart, rangeEnd) {
-        let count = 0;
+        // מכיוון שאין אירועים אמיתיים מרובי-ימים במערכת הנוכחית,
+        // אנו צריכים להתייחס רק לתאריך ההתחלה של האירוע.
         const eventStart = new Date(event.start);
-        let eventEnd = event.end ? new Date(event.end) : null;
-        if (!eventEnd || eventEnd <= eventStart) {
-            eventEnd = new Date(eventStart.getTime() + 86400000);
+
+        // אנו מנרמלים את תאריך ההתחלה של האירוע לתחילת היום (חצות)
+        // כדי להבטיח השוואה נקייה, ללא תלות בשעה.
+        const startDay = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+
+        // בודקים האם היום הבודד הזה נופל בטווח התאריכים של התצוגה הנוכחית.
+        if (startDay >= rangeStart && startDay < rangeEnd) {
+            return 1; // אם כן, האירוע נספר פעם אחת.
         }
-        let loop = new Date(eventStart);
-        loop.setHours(0, 0, 0, 0);
-        while (loop < eventEnd) {
-            if (loop >= rangeStart && loop < rangeEnd) {
-                count++;
-            }
-            loop.setDate(loop.getDate() + 1);
-        }
-        return count;
+
+        return 0; // אחרת, הוא לא בתצוגה ואינו נספר.
     }
 
     function updateStats() {
