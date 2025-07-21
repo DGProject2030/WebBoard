@@ -295,9 +295,10 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%) rotate(-30deg);
-        font-size: 15vw;
-        font-weight: bold;
-        color: rgba(0, 0, 0, 0.05);
+        /* Updated for image logo */
+        max-width: 30vw;
+        max-height: 30vh;
+        opacity: 0.05;
         pointer-events: none;
         z-index: 1000;
         user-select: none;
@@ -319,8 +320,12 @@
     }
 
     .fc .fc-daygrid-day-number {
-        font-size: 0.8em;
-        opacity: 0.6;
+        font-size: 0.9em;
+        opacity: 0.7;
+        font-weight: 500;
+        padding: 4px 8px;
+        /* NEW: Better positioning for numbers */
+        margin: 2px;
     }
 
     .fc .fc-daygrid-day-events {
@@ -375,6 +380,12 @@
             opacity: 0.4;
         }
 
+        /* NEW: Make other month's numbers even less prominent */
+        .fc-day-other .fc-daygrid-day-number {
+            opacity: 0.3;
+            font-weight: 400;
+        }
+
     .fc-col-header-cell {
         background-color: #f1f3f5;
         border-bottom: 2px solid #e9ecef;
@@ -382,15 +393,68 @@
         color: #495057;
     }
 
+        /* NEW: Highlight today in week/day view headers */
+        .fc-col-header-cell.fc-day-today {
+            background-color: #e3f2fd !important;
+            border-bottom-color: #007bff;
+            color: #007bff;
+        }
+
     .fc-day-today {
         background-color: #eaf6ff !important;
+        /* NEW: Enhanced border for today's cell */
+        border: 2px solid #007bff !important;
+        position: relative;
     }
 
         .fc-day-today .fc-daygrid-day-number {
             font-weight: bold;
             opacity: 1;
             color: #007bff;
+            /* NEW: Enhanced number styling for today */
+            background-color: #007bff;
+            color: white !important;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            margin: 2px;
         }
+
+        /* NEW: Pulse effect for today's cell */
+        .fc-day-today::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid #007bff;
+            border-radius: inherit;
+            animation: pulse 2s infinite;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.3;
+        }
+
+        50% {
+            transform: scale(1.02);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 0.3;
+        }
+    }
 
     .fc-event {
         cursor: pointer;
@@ -627,6 +691,19 @@
             width: 200px;
         }
 
+        /* NEW: Adjust today's number size for mobile */
+        .fc-day-today .fc-daygrid-day-number {
+            width: 24px;
+            height: 24px;
+            font-size: 0.8em;
+        }
+
+        /* NEW: Smaller watermark on mobile */
+        #watermark {
+            max-width: 50vw;
+            max-height: 20vh;
+        }
+
         #custom-month-view .fc-button-text,
         #custom-week-view .fc-button-text,
         #custom-day-view .fc-button-text,
@@ -685,6 +762,13 @@
 
         #custom-title {
             font-size: 1.1em;
+        }
+
+        /* NEW: Even smaller today's number on very small screens */
+        .fc-day-today .fc-daygrid-day-number {
+            width: 22px;
+            height: 22px;
+            font-size: 0.75em;
         }
     }
 </style>
