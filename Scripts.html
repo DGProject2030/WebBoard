@@ -50,17 +50,16 @@
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'he',
                 direction: 'rtl',
-
-                // **FIXED**: Set height to 'auto' to allow the calendar to grow vertically with its content.
                 height: 'auto',
-
                 headerToolbar: false,
                 initialView: initialView,
                 navLinks: true,
                 editable: false,
-
-                // **FIXED**: Set to false to ensure all events are always displayed, never hidden behind a "+more" link.
                 dayMaxEvents: false,
+
+                // **FIXED**: Explicitly set the event order to be by start time.
+                // This ensures events are always displayed chronologically within each day.
+                eventOrder: 'start',
 
                 events: allEvents, // Use the global array
                 eventTimeFormat: {
@@ -85,14 +84,16 @@
                         }
                     } else {
                         if (info.event.backgroundColor) {
-                            info.el.style.backgroundColor = info.event.backgroundColor;
-                            info.el.style.borderColor = info.event.backgroundColor;
+                            // For list-item view, we don't want to color the whole background
+                            // Let's just color the dot.
+                            const dotEl = info.el.querySelector('.fc-list-event-dot');
+                            if (dotEl) {
+                                dotEl.style.borderColor = info.event.textColor;
+                            }
                         }
                         if (info.event.textColor) {
-                            const eventMain = info.el.querySelector('.fc-event-main');
+                            const eventMain = info.el.querySelector('.fc-event-title');
                             if (eventMain) eventMain.style.color = info.event.textColor;
-                            const eventTitle = info.el.querySelector('.fc-event-title');
-                            if (eventTitle) eventTitle.style.color = info.event.textColor;
                         }
                     }
                 },

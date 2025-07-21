@@ -104,7 +104,6 @@ function enrichEventsWithSupportingData(tasks, supportingData) {
         enrichedEvent.taskManagerName = `${taskManagerData.fName || ''} ${taskManagerData.sName || ''}`.trim();
         enrichedEvent.projectManagerName = `${projectManagerData.fName || ''} ${projectManagerData.sName || ''}`.trim();
 
-        // **FIXED**: Standardize status and type fields to lowercase to ensure case-insensitivity
         enrichedEvent.projectStatus = (projectStatusData.Status || '').trim().toLowerCase();
         enrichedEvent.taskTypeName = (taskTypeData.hebrew || task.Task || '').trim().toLowerCase();
         enrichedEvent.taskStatusHebrew = (taskStatusData.hebrew || taskStatusData.TaskStatus || '').trim().toLowerCase();
@@ -142,9 +141,6 @@ function transformEventsForCalendar(enrichedEvents) {
 
     return enrichedEvents.map(event => {
         const start = formatDateTimeForCalendar(event.dateIn, event.timeIn);
-
-        // **FIXED (New approach)**: To display events only on their start date,
-        // we will not provide an end date to FullCalendar. This prevents multi-day rendering.
         const end = undefined;
 
         if (!start) return null;
@@ -155,8 +151,12 @@ function transformEventsForCalendar(enrichedEvents) {
             id: event.ID,
             title: buildEventTitle(event),
             start: start,
-            end: end, // By not setting an end date, it will only appear on the start date.
+            end: end,
             allDay: isCalendarEvent || !event.timeIn,
+
+            // **FIXED**: Force all events to render as list items to prevent overlap.
+            display: 'list-item',
+
             backgroundColor: event.backgroundColor,
             textColor: event.textColor,
             borderColor: event.backgroundColor,
