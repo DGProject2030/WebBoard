@@ -296,9 +296,9 @@
         left: 50%;
         transform: translate(-50%, -50%) rotate(-30deg);
         /* Updated for image logo */
-        max-width: 80vw; /* <-- הוגדל משמעותית ל-80 */
-        max-height: 80vh; /* <-- הוגדל משמעותית ל-80 */
-        opacity: 0.1; /* <-- הוחזר לערך נמוך מאוד כדי לא להפריע מדי */
+        max-width: 80vw;
+        max-height: 80vh;
+        opacity: 0.05;
         pointer-events: none;
         z-index: 1000;
         user-select: none;
@@ -769,6 +769,37 @@
             width: 22px;
             height: 22px;
             font-size: 0.75em;
+        }
+    }
+
+    @media print {
+        body {
+            background-color: #ffffff; /* מבטיח רקע לבן בהדפסה */
+        }
+
+        /* הסתרת אלמנטים לא רלוונטיים להדפסה */
+        #custom-toolbar,
+        #watermark,
+        #notification-bar,
+        .modal {
+            display: none !important;
+        }
+
+        #calendar-container {
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        #calendar {
+            box-shadow: none;
+            border: none;
+        }
+
+        /* אילוץ הדפסת צבעים ורקעים של האירועים */
+        .fc-event {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
     }
 </style>

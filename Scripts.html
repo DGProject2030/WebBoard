@@ -211,6 +211,11 @@
         document.getElementById('custom-next-button').addEventListener('click', () => calendar.next());
         document.getElementById('custom-today-button').addEventListener('click', () => calendar.today());
 
+        // Print button
+        document.getElementById('print-button').addEventListener('click', () => {
+            window.print();
+        });
+
         // View buttons
         const viewButtons = {
             month: document.getElementById('custom-month-view'),
@@ -262,20 +267,19 @@
     }
 
     function countEventDaysInRange(event, rangeStart, rangeEnd) {
-        // מכיוון שאין אירועים אמיתיים מרובי-ימים במערכת הנוכחית,
-        // אנו צריכים להתייחס רק לתאריך ההתחלה של האירוע.
+        // The current implementation has no true multi-day events,
+        // so we only need to handle the event's start date.
         const eventStart = new Date(event.start);
 
-        // אנו מנרמלים את תאריך ההתחלה של האירוע לתחילת היום (חצות)
-        // כדי להבטיח השוואה נקייה, ללא תלות בשעה.
+        // Normalize the event's start date to the beginning of the day for a clean comparison.
         const startDay = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
 
-        // בודקים האם היום הבודד הזה נופל בטווח התאריכים של התצוגה הנוכחית.
+        // Check if this single day falls within the visible month range.
         if (startDay >= rangeStart && startDay < rangeEnd) {
-            return 1; // אם כן, האירוע נספר פעם אחת.
+            return 1; // It's one day in the view.
         }
 
-        return 0; // אחרת, הוא לא בתצוגה ואינו נספר.
+        return 0; // It's not in the view.
     }
 
     function updateStats() {
