@@ -1,110 +1,119 @@
 /**
  * @file DataAccess.gs
  * @description Handles all direct data access from Google Sheets and caching logic.
+ * @version 2.0 - Optimized for performance
  */
 
-// --- UPDATED --- Switched to the production spreadsheet ID.
 const SPREADSHEET_ID = '1vzthy4oBpXMYa-8TkuGCHUC5DkMkeVf0_pNlh7UopXg';
-
-// --- Caching Configuration ---
-const CACHE_EXPIRATION_SECONDS = 3600; // Cache data for 1 hour (3600 seconds)
+const CACHE_EXPIRATION_SECONDS = 3600; // Cache data for 1 hour
 const CACHE_SERVICE = CacheService.getScriptCache();
+const ALL_DATA_CACHE_KEY = 'ALL_SHEETS_DATA_V2'; // A single key for the entire dataset
 
 /**
- * A generic function to read a sheet and convert its data into an array of objects.
- * Assumes the first row of the sheet is the header row.
- * פונקציה גנרית לקריאת גיליון והמרתו למערך של אובייקטים.
- * @param {string} sheetName - The name of the sheet (tab) to read.
- * @param {string} spreadsheetId - The ID of the Google Sheets file.
+ * A generic function to convert a 2D array from a sheet into an array of objects.
+ * Assumes the first row of the values is the header row.
+ * @param {Array<Array<any>>} values - The 2D array of data from sheet.getDataRange().getValues().
  * @returns {Array<Object>} An array of objects, where each object represents a row.
  */
-function sheetToObjects(sheetName, spreadsheetId) {
-  try {
-    const ss = SpreadsheetApp.openById(spreadsheetId);
-    const sheet = ss.getSheetByName(sheetName);
-    if (!sheet) {
-      console.error(`Sheet "${sheetName}" not found in spreadsheet with ID "${spreadsheetId}".`);
-      return [];
+function valuesToObjects(values) {
+    if (!values || values.length < 2) {
+        return []; // Not enough data to process
     }
-    const dataRange = sheet.getDataRange();
-    const values = dataRange.getValues();
-
-    if (values.length < 2) {
-      return []; // Not enough data to process (needs header + at least one data row)
-    }
-
-    const headers = values.shift().map(header => header.trim()); // Get header row and trim whitespace
-
+    const headers = values.shift().map(header => header.toString().trim());
     const data = values.map(row => {
-      const obj = {};
-      headers.forEach((header, index) => {
-        if (header) { // Only add property if header is not empty
-          obj[header] = row[index];
-        }
-      });
-      return obj;
+        const obj = {};
+        headers.forEach((header, index) => {
+            if (header) {
+                obj[header] = row[index];
+            }
+        });
+        return obj;
     });
-
-    // Filter rows based on the 'ID' column to ensure data integrity.
-    return data.filter(obj => obj.ID && obj.ID.toString().length > 0);
-    
-  } catch (e) {
-    console.error(`Failed to read sheet: ${sheetName}. Error: ${e.toString()}`);
-    return [];
-  }
+    return data;
 }
 
 /**
  * A generic utility function to convert an array of objects into a map for fast lookups.
- * פונקציית עזר להמרת מערך למפת חיפוש מהירה (אובייקט).
  * @param {Array<Object>} array - The array to convert.
  * @param {string} keyField - The name of the property to use as the key for the map.
  * @returns {Object} A map-like object for O(1) lookups.
  */
 function arrayToMap(array, keyField) {
-  const map = {};
-  array.forEach(item => {
-    if (item && item[keyField]) {
-      map[item[keyField]] = item;
-    }
-  });
-  return map;
+    const map = {};
+    array.forEach(item => {
+        if (item && item[keyField]) {
+            map[item[keyField]] = item;
+        }
+    });
+    return map;
 }
 
 
 /**
- * A robust function that fetches a single sheet, converts it to a map,
- * and can optionally cache the result.
- * פונקציה יעילה הקוראת גיליון, ממירה אותו למפה, ומנהלת שמירה במטמון.
- * @param {string} sheetName - The name of the sheet to fetch (e.g., 'Project', 'Employee').
- * @param {string} keyField - The column name to use as the key for the map (e.g., 'ID').
- * @param {boolean} [useCache=true] - Optional. Set to false to bypass caching for this sheet.
- * @returns {Object} A map of the sheet's data, retrieved from cache or freshly fetched.
+ * Fetches all required data from the spreadsheet in an optimized way, using a single cache entry.
+ * This function is designed to minimize calls to SpreadsheetApp, which is the main performance bottleneck.
+ * @returns {Object} An object containing all the necessary data maps.
  */
-function getSheetAsMapWithCache(sheetName, keyField, useCache = true) {
-  // If caching is enabled for this sheet, try to retrieve from cache first.
-  if (useCache) {
-    const cacheKey = `map_${sheetName}_v1`; // A unique key for each sheet
-    const cached = CACHE_SERVICE.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
+function getAllDataWithCache() {
+    // 1. Try to get the entire dataset from cache first.
+    const cachedData = CACHE_SERVICE.get(ALL_DATA_CACHE_KEY);
+    if (cachedData) {
+        return JSON.parse(cachedData);
     }
-  }
 
-  // If not using cache, or if item is not in cache, fetch fresh data.
-  const sheetData = sheetToObjects(sheetName, SPREADSHEET_ID);
-  const dataMap = arrayToMap(sheetData, keyField);
-
-  // If caching is enabled, try to store the new data.
-  if (useCache) {
+    // 2. If not in cache, fetch fresh data from the spreadsheet.
+    console.log("Cache miss. Fetching fresh data from Spreadsheet.");
     try {
-      const cacheKey = `map_${sheetName}_v1`;
-      CACHE_SERVICE.put(cacheKey, JSON.stringify(dataMap), CACHE_EXPIRATION_SECONDS);
-    } catch (e) {
-      // If caching fails (e.g., data is too large), log the error but continue.
-      console.error(`Could not cache sheet: ${sheetName}. Data might be too large. Error: ${e.message}`);
-    }
-  }
+        const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-  return dataMap;
+        const sheetNames = ['Task', 'Project', 'Employee', 'TaskStatus', 'TaskType', 'Location', 'ProjectStatus'];
+        const sheets = {};
+        ss.getSheets().forEach(sheet => {
+            const sheetName = sheet.getName();
+            if (sheetNames.includes(sheetName)) {
+                sheets[sheetName] = sheet.getDataRange().getValues();
+            }
+        });
+
+        // 3. Process the raw data into maps.
+        const taskData = valuesToObjects(sheets['Task'] || []).filter(obj => obj.ID && obj.ID.toString().length > 0);
+
+        const supportingData = {
+            projects: arrayToMap(valuesToObjects(sheets['Project'] || []), 'ID'),
+            employees: arrayToMap(valuesToObjects(sheets['Employee'] || []), 'ID'),
+            taskStatuses: arrayToMap(valuesToObjects(sheets['TaskStatus'] || []), 'ID'),
+            taskTypes: arrayToMap(valuesToObjects(sheets['TaskType'] || []), 'ID'),
+            locations: arrayToMap(valuesToObjects(sheets['Location'] || []), 'ID'),
+            projectStatuses: arrayToMap(valuesToObjects(sheets['ProjectStatus'] || []), 'ID')
+        };
+
+        const allData = {
+            taskData: taskData,
+            supportingData: supportingData
+        };
+
+        // 4. Store the combined result in the cache.
+        try {
+            CACHE_SERVICE.put(ALL_DATA_CACHE_KEY, JSON.stringify(allData), CACHE_EXPIRATION_SECONDS);
+        } catch (e) {
+            console.error(`Could not cache the dataset. Data might be too large. Error: ${e.message}`);
+        }
+
+        return allData;
+
+    } catch (e) {
+        console.error(`Failed to fetch and process spreadsheet data. Error: ${e.toString()}`);
+        // Return an empty structure to prevent the app from crashing
+        return {
+            taskData: [],
+            supportingData: {
+                projects: {},
+                employees: {},
+                taskStatuses: {},
+                taskTypes: {},
+                locations: {},
+                projectStatuses: {}
+            }
+        };
+    }
 }
