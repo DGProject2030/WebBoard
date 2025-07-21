@@ -1,0 +1,31 @@
+# Visual Studio cache files
+# This is the main fix for your issue
+.vs/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Rider files
+.idea/
+*.sln.iml
+
+# Other common files to ignore
+*.log
+*.tmp
+node_modules/
+
