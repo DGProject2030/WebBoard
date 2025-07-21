@@ -773,49 +773,30 @@
     }
 
     @media print {
-        /* מאפס את הגדרות העמוד - ללא שוליים */
-        @page {
-            size: A4 portrait;
-            margin: 0 !important;
-        }
-
-        /* מאפס את ה-body וממקם את התוכן במרכז */
         body {
-            padding: 0 !important;
-            margin: 0 !important;
-            background-color: #ffffff !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background-color: #ffffff; /* מבטיח רקע לבן בהדפסה */
         }
 
-        /* מסתיר את כל האלמנטים שאינם לוח השנה */
+        /* הסתרת אלמנטים לא רלוונטיים להדפסה */
         #custom-toolbar,
         #watermark,
         #notification-bar,
-        .modal,
-        #loader-wrapper {
+        .modal {
             display: none !important;
         }
 
-        /* קובע שהקונטיינר של לוח השנה יתפוס 100% מהגובה ויתכווץ בהתאם */
         #calendar-container {
             padding: 0;
             margin: 0;
-            border: none;
             box-shadow: none;
-            width: 100%;
-            height: 100%;
-            transform: scale(0.75); /* <-- שולט על מידת הכיווץ. ניתן לשנות את המספר */
-            transform-origin: top center; /* קובע שהכיווץ יתבצע מהחלק העליון */
         }
 
         #calendar {
-            margin-top: 0;
             box-shadow: none;
             border: none;
         }
 
-        /* מבטיח שהאירועים יודפסו עם צבע הרקע שלהם */
+        /* אילוץ הדפסת צבעים ורקעים של האירועים */
         .fc-event {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
